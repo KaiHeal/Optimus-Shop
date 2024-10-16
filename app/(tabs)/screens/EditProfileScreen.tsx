@@ -94,9 +94,7 @@ onChangeText={(text) => setUserData({ ...userData, username: text })}
         secureTextEntry
       />
       
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveText}>Lưu</Text>
-      </TouchableOpacity>
+    
     </View>
   );
 };
@@ -104,7 +102,7 @@ onChangeText={(text) => setUserData({ ...userData, username: text })}
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
   title: { fontSize: 24, marginBottom: 20 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginBottom: 15 },
+  input: { borderWidth: 1, borderColor: '#FFB6C1', borderRadius: 5, padding: 10, marginBottom: 15 },
   saveButton: { backgroundColor: '#000', padding: 15, borderRadius: 5, alignItems: 'center' },
   saveText: { color: '#fff', fontSize: 18 },
   avatar: { width: 100, height: 100, borderRadius: 50, marginBottom: 15 },

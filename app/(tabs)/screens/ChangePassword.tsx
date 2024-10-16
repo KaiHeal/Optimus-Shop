@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
+    backgroundColor:'pink'
   },
   input: {
     height: 40,
@@ -93,13 +94,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   button: {
-    backgroundColor: '#F08080',
+    backgroundColor: '#[000]',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: 'pink',
     fontSize: 16,
   },
   errorText: {

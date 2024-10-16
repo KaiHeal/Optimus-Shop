@@ -47,7 +47,7 @@ const Cart: React.FC<CartProps> = ({
     <View style={styles.cartItem} key={item.id}>
       <TouchableOpacity onPress={() => onToggleSelect(item.id, item.Sizes ? item.Sizes[0] : '')}>
         <View style={styles.checkbox}>
-          {item.selected && <View style={styles.checkedIndicator} />}
+          {item.selected && <Text style={styles.checkedIndicator}>✓</Text>}
         </View>
       </TouchableOpacity>
       {item.ImageUrl && (
@@ -173,10 +173,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   checkedIndicator: {
-    width: 16,
-    height: 16,
-    backgroundColor: '#000',
-    borderRadius: 3,
+    color: '', // Màu xanh cho dấu "V"
+    fontSize: 20, // Kích thước chữ
   },
   itemImage: {
     width: 50,

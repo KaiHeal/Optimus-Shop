@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+    backgroundColor:'pink',
   },
   title: {
     fontSize: 24,
@@ -139,20 +140,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 40,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#000',
     marginBottom: 10,
     paddingLeft: 8,
     borderRadius: 5,
   },
   registerButton: {
-    backgroundColor: '#F08080',
+    backgroundColor: '#000',
     padding: 15,
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
   },
   registerText: {
-    color: 'white',
+    color: 'pink',
     fontSize: 18,
   },
   errorText: {

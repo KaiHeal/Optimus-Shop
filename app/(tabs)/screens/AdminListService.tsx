@@ -146,7 +146,7 @@ const AdminListScreen = ({ navigation }: any) => {
       {renderStars()}
       <View style={styles.header}>
         <Text style={styles.headerText}>ADMIN</Text>
-        <Text style={styles.logo}>Shop Spoot Clothes</Text>
+        <Text style={styles.logo}>Optimus</Text>
       </View>
       <View style={styles.content}>
         <View style={styles.serviceListHeader}>

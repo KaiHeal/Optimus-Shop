@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } fr
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Cart from './Cart';
+import StarRating from './StarRating';
 
 type Service = {
   id: string;
@@ -13,7 +14,8 @@ type Service = {
   Description?: string;
   Sizes?: string[];
   Quantity?: number;
-  selected?: boolean; // Thêm trường này
+  selected?: boolean;
+  isFavorite?: boolean; // Thêm thuộc tính cho trạng thái yêu thích
 };
 
 const DetailScreen = ({ route, navigation }: any) => {
@@ -22,6 +24,8 @@ const DetailScreen = ({ route, navigation }: any) => {
   const [isCartVisible, setCartVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [cartQuantity, setCartQuantity] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(service.isFavorite || false); // Khởi tạo trạng thái yêu thích
 
   const sizes = service.Sizes || ['S', 'M', 'L', 'XL', '2XL', '3XL'];
 
@@ -56,6 +60,18 @@ const DetailScreen = ({ route, navigation }: any) => {
     saveCart();
   }, [cart]);
 
+  useEffect(() => {
+    const saveFavoriteStatus = async () => {
+      try {
+        await AsyncStorage.setItem(`@favorite_${service.id}`, JSON.stringify(isFavorite));
+      } catch (e) {
+        console.error("Không thể lưu trạng thái yêu thích:", e);
+      }
+    };
+
+    saveFavoriteStatus();
+  }, [isFavorite]);
+
   const handleAddToCart = () => {
     if (!selectedSize) {
       Alert.alert('Vui lòng chọn kích thước!');
@@ -82,6 +98,11 @@ const DetailScreen = ({ route, navigation }: any) => {
 
     const totalQuantity = cart.reduce((sum, item) => sum + (item.Quantity || 0), 0) + 1;
     setCartQuantity(totalQuantity);
+  };
+
+  const handleToggleFavorite = () => {
+    setIsFavorite((prevState: any) => !prevState);
+    Alert.alert(`Bạn đã ${!isFavorite ? 'thêm vào' : 'xóa khỏi'} danh sách yêu thích!`);
   };
 
   const handleGoToCart = () => {
@@ -122,11 +143,19 @@ const DetailScreen = ({ route, navigation }: any) => {
     setCartQuantity(totalQuantity);
   };
 
-  const handleToggleSelect = (id: string) => {
-    const updatedCart = cart.map(item =>
-      item.id === id ? { ...item, selected: !item.selected } : item
-    );
+  const handleToggleSelect = (id: string, size: string) => {
+    const updatedCart = cart.map(item => {
+      if (item.id === id && item.Sizes?.includes(size)) {
+        return { ...item, selected: !item.selected };
+      }
+      return item;
+    });
     setCart(updatedCart);
+  };
+
+  const handleRatingChange = (rating: React.SetStateAction<number>) => {
+    setUserRating(rating);
+    Alert.alert(`Bạn đã đánh giá ${rating} sao!`);
   };
 
   return (
@@ -140,6 +169,13 @@ const DetailScreen = ({ route, navigation }: any) => {
         )}
       </TouchableOpacity>
       
+      <ScrollView contentContainerStyle={styles.container}>
+      <TouchableOpacity style={styles.favoriteIcon} onPress={handleToggleFavorite}>
+        <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? "red" : "black"} />
+      </TouchableOpacity>
+      {/* Other UI components */}
+    </ScrollView>
+
       <Text style={styles.title}>{service.ServiceName}</Text>
       
       {service.ImageUrl && (
@@ -176,6 +212,9 @@ const DetailScreen = ({ route, navigation }: any) => {
         <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
           <Text style={styles.addButtonText}>Thêm vào giỏ hàng</Text>
         </TouchableOpacity>
+
+        <Text style={styles.text}>Đánh giá:</Text>
+        <StarRating rating={userRating} onRatingChange={handleRatingChange} />
       </View>
 
       <Cart
@@ -200,6 +239,12 @@ const styles = StyleSheet.create({
   cartIcon: {
     position: 'absolute',
     right: 20,
+    top: 20,
+    zIndex: 1000,
+  },
+  favoriteIcon: {
+    position: 'absolute',
+    left: 20,
     top: 20,
     zIndex: 1000,
   },

@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  TextInput, 
-  Image, 
-  Modal, 
-  SafeAreaView, 
-  Animated 
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image, Modal,  SafeAreaView,  Animated 
 } from 'react-native';
 import { FIRESTORE_DB } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
@@ -20,6 +9,7 @@ import Toast from 'react-native-toast-message';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Service = {
+  Quantity: number;
   id: string;
   Creator: string;
   Price: number;
@@ -31,6 +21,7 @@ type Service = {
 const AdBanner = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value
   const [currentIndex, setCurrentIndex] = useState(0);
+  
 
   const images = [
     'https://synottip-cz.com/wp-content/uploads/2022/08/homepage.png',
@@ -229,9 +220,9 @@ const CustomerListService = ({ navigation, route }: any) => {
             <Text style={styles.usernameText}>Xin Chào, {username ? username : "Người dùng"}</Text>
           )}
         </View>
-        <Text style={styles.logo}>Bumblebee</Text>
+        <Text style={styles.logo}>Optimus</Text>
         <TouchableOpacity onPress={() => setSidebarVisible(true)}>
-          <Icon name="menu" size={24} color="#fff" />
+          <Icon name="menu" size={24} color="#FFB6C1" />
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
@@ -261,21 +252,21 @@ const CustomerListService = ({ navigation, route }: any) => {
       </View>
       <View style={styles.bottomNav}>
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Icon name="home" size={24} color="#fff" />
+          <Icon name="home" size={24} color="#FFB6C1" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Favourite', { favourites, removeFavourite, setFavoritesCount })}>
           <View style={styles.favouriteIconContainer}>
-            <Icon name="favorite" size={24} color="#fff" />
+            <Icon name="favorite" size={24} color="#FFB6C1" />
             {favoritesCount > 0 && (
               <Text style={styles.favouriteCountText}>{favoritesCount}</Text>
             )}
           </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('EditProfileScreen')}>
-          <Icon name="person" size={24} color="#fff" />
+          <Icon name="person" size={24} color="#FFB6C1" />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
-          <Icon name="settings" size={24} color="#fff" />
+          <Icon name="settings" size={24} color="#FFB6C1" />
         </TouchableOpacity>
       </View>
 
@@ -284,8 +275,11 @@ const CustomerListService = ({ navigation, route }: any) => {
         cartItems={cart}
         onClose={() => setCartVisible(false)}
         onRemove={(itemId: string) => setCart(cart.filter(item => item.id !== itemId))}
-        onCheckout={handleCheckout}
-      />
+        onCheckout={handleCheckout} onUpdateQuantity={function (id: string, size: string, newQuantity: number): void {
+          throw new Error('Function not implemented.');
+        } } onToggleSelect={function (id: string, size: string): void {
+          throw new Error('Function not implemented.');
+        } }      />
 
       <Toast />
 
@@ -316,7 +310,7 @@ const CustomerListService = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFB6C1',
   },
   loadingIndicator: {
     flex: 1,
@@ -337,7 +331,7 @@ const styles = StyleSheet.create({
   logo: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#FFB6C1',
     flex: 1,
     textAlign: 'center',
   },
@@ -355,7 +349,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFB6C1',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -439,7 +433,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#000',
-    marginLeft:100,
+    marginLeft:0,
   },
   favouriteIconContainer: {
     position: 'relative',
