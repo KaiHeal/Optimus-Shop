@@ -15,6 +15,8 @@ import Favourite from './screens/Favourite';
 import CheckoutScreen from './screens/checkout'; // Import CheckoutScreen
 import Cart from './screens/Cart';
 import EditProfileScreen from './screens/EditProfileScreen';
+
+
 const Stack = createStackNavigator();
 
 const App = () => {

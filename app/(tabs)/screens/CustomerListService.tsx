@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -9,7 +9,8 @@ import {
   TextInput, 
   Image, 
   Modal, 
-  SafeAreaView 
+  SafeAreaView, 
+  Animated 
 } from 'react-native';
 import { FIRESTORE_DB } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
@@ -27,6 +28,50 @@ type Service = {
   Description: string;
 };
 
+const AdBanner = () => {
+  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const images = [
+    'https://synottip-cz.com/wp-content/uploads/2022/08/homepage.png',
+    'https://th.bing.com/th/id/OIP.8U4WQYhjhrpVAvL1tk8VtQHaCP?w=1199&h=362&rs=1&pid=ImgDetMain',
+    'https://img.freepik.com/premium-photo/soccer-player-red-uniform-is-kicking-ball-air_801994-341.jpg',
+  ];
+
+  useEffect(() => {
+    const changeImage = () => {
+      setCurrentIndex(prevIndex => (prevIndex + 1) % images.length);
+    };
+
+    const interval = setInterval(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }).start(() => {
+        changeImage();
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }).start();
+      });
+    }, 3000); // Change image every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [fadeAnim]);
+
+  return (
+    <View style={styles.bannerContainer}>
+      <Animated.Image
+        source={{ uri: images[currentIndex] }}
+        style={[styles.bannerImage, { opacity: fadeAnim }]}
+        resizeMode="cover"
+      />
+    </View>
+  );
+};
+
 const CustomerListService = ({ navigation, route }: any) => {
   const { username } = route.params || {};
   const [services, setServices] = useState<Service[]>([]);
@@ -36,9 +81,10 @@ const CustomerListService = ({ navigation, route }: any) => {
   const [cart, setCart] = useState<Service[]>([]);
   const [isCartVisible, setCartVisible] = useState(false);
   const [favourites, setFavourites] = useState<Service[]>([]);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const [isSidebarVisible, setSidebarVisible] = useState(false);
   const [userData, setUserData] = useState<{ phone: string; avatarUrl: string }>({ phone: '', avatarUrl: '' });
-  const [showGreeting, setShowGreeting] = useState(true); // New state for greeting visibility
+  const [showGreeting, setShowGreeting] = useState(true);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -72,10 +118,10 @@ const CustomerListService = ({ navigation, route }: any) => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowGreeting(false); // Hide greeting after 3 seconds
-    }, 3000); // Adjust time as needed
+      setShowGreeting(false);
+    }, 3000);
 
-    return () => clearTimeout(timer); // Cleanup the timer on unmount
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSearch = (text: string) => {
@@ -103,6 +149,7 @@ const CustomerListService = ({ navigation, route }: any) => {
   const handleAddToFavourites = (service: Service) => {
     if (!favourites.some(fav => fav.id === service.id)) {
       setFavourites([...favourites, service]);
+      setFavoritesCount(prevCount => prevCount + 1);
       Toast.show({
         text1: 'Đã thêm vào danh sách yêu thích!',
         visibilityTime: 2000,
@@ -111,6 +158,7 @@ const CustomerListService = ({ navigation, route }: any) => {
       });
     } else {
       removeFavourite(service.id);
+      setFavoritesCount(prevCount => prevCount - 1);
       Toast.show({
         text1: 'Đã xóa khỏi danh sách yêu thích!',
         visibilityTime: 2000,
@@ -172,12 +220,12 @@ const CustomerListService = ({ navigation, route }: any) => {
           <TouchableOpacity onPress={() => navigation.navigate('EditProfileScreen')}>
             <Image
               source={{
-                uri: userData.avatarUrl || 'https://th.bing.com/th/id/OIP.DTZElahkqc5vkeQY-5c2fwHaHa?w=215&h=215&c=7&r=0&o=5&dpr=1.5&pid=1.7'
+                uri: userData.avatarUrl || 'https://th.bing.com/th/id/OIP._prlVvISXU3EfqFW3GF-RwHaHa?w=193&h=193&c=7&r=0&o=5&dpr=1.5&pid=1.7'
               }}
               style={styles.avatar}
             />
           </TouchableOpacity>
-          {showGreeting && ( // Conditionally render the greeting
+          {showGreeting && (
             <Text style={styles.usernameText}>Xin Chào, {username ? username : "Người dùng"}</Text>
           )}
         </View>
@@ -187,6 +235,9 @@ const CustomerListService = ({ navigation, route }: any) => {
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
+        {/* Thêm Banner Quảng Cáo */}
+        <AdBanner />
+        
         <View style={styles.searchContainer}>
           <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
           <TextInput
@@ -212,8 +263,13 @@ const CustomerListService = ({ navigation, route }: any) => {
         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
           <Icon name="home" size={24} color="#fff" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Favourite', { favourites, removeFavourite })}>
-          <Icon name="favorite" size={24} color="#fff" />
+        <TouchableOpacity onPress={() => navigation.navigate('Favourite', { favourites, removeFavourite, setFavoritesCount })}>
+          <View style={styles.favouriteIconContainer}>
+            <Icon name="favorite" size={24} color="#fff" />
+            {favoritesCount > 0 && (
+              <Text style={styles.favouriteCountText}>{favoritesCount}</Text>
+            )}
+          </View>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('EditProfileScreen')}>
           <Icon name="person" size={24} color="#fff" />
@@ -221,7 +277,6 @@ const CustomerListService = ({ navigation, route }: any) => {
         <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
           <Icon name="settings" size={24} color="#fff" />
         </TouchableOpacity>
-        
       </View>
 
       <CartScreen
@@ -251,7 +306,6 @@ const CustomerListService = ({ navigation, route }: any) => {
             <TouchableOpacity onPress={() => { setSidebarVisible(false); navigation.navigate('SettingsScreen'); }}>
               <Text style={styles.sidebarItem}>Cài đặt</Text>
             </TouchableOpacity>
-            
           </View>
         </View>
       </Modal>
@@ -385,6 +439,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     backgroundColor: '#000',
+    marginLeft:100,
+  },
+  favouriteIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  favouriteCountText: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#ff3d00',
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    fontSize: 12,
   },
   sidebarContainer: {
     flex: 1,
@@ -414,6 +483,15 @@ const styles = StyleSheet.create({
   sidebarItem: {
     fontSize: 18,
     marginVertical: 10,
+  },
+  // Styles cho Banner
+  bannerContainer: {
+    marginBottom: 15,
+  },
+  bannerImage: {
+    width: '100%', // Full width
+    height: 150, // Height of the banner
+    borderRadius: 10, // Rounded corners
   },
 });
 

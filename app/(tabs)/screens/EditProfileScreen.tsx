@@ -14,7 +14,13 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { launchImageLibrary } from 'react-native-image-picker';
 
 const EditProfileScreen = ({ navigation }) => {
-  const [userData, setUserData] = useState({ phone: '', password: '', name: '', avatarUrl: '' });
+  const [userData, setUserData] = useState({
+    phone: '',
+    password: '',
+    name: '',
+    avatarUrl: '',
+    username: '', // Thêm trường username
+  });
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -41,7 +47,12 @@ const EditProfileScreen = ({ navigation }) => {
         password: userData.password,
         name: userData.name,
         avatarUrl: userData.avatarUrl,
+        username: userData.username, // Cập nhật tên người dùng
       });
+
+      // Cập nhật dữ liệu người dùng vào AsyncStorage
+      await AsyncStorage.setItem('userData', JSON.stringify(userData));
+
       Alert.alert('Thông báo', 'Cập nhật thành công!');
       navigation.goBack();
     } catch (error) {
@@ -60,12 +71,14 @@ const EditProfileScreen = ({ navigation }) => {
           <View style={styles.avatarPlaceholder} />
         )}
       </TouchableOpacity>
+      
       <TextInput
         style={styles.input}
-        placeholder="Tên"
-        value={userData.name}
-        onChangeText={(text) => setUserData({ ...userData, name: text })}
+        placeholder="Tên người dùng"
+        value={userData.username} // Hiển thị tên người dùng ở đây
+onChangeText={(text) => setUserData({ ...userData, username: text })}
       />
+
       <TextInput
         style={styles.input}
         placeholder="Số điện thoại"
@@ -80,6 +93,7 @@ const EditProfileScreen = ({ navigation }) => {
         onChangeText={(text) => setUserData({ ...userData, password: text })}
         secureTextEntry
       />
+      
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveText}>Lưu</Text>
       </TouchableOpacity>
@@ -88,7 +102,6 @@ const EditProfileScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  // Add basic styles
   container: { flex: 1, padding: 20, backgroundColor: '#fff' },
   title: { fontSize: 24, marginBottom: 20 },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 5, padding: 10, marginBottom: 15 },

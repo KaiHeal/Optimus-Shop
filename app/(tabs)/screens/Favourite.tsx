@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 10,
     padding: 10,
+    height: 100, // Chiều cao cố định cho khung sản phẩm
   },
   itemImage: {
     width: 80,
@@ -134,3 +135,4 @@ const styles = StyleSheet.create({
 });
 
 export default Favourite;
+

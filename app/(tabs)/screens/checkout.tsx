@@ -27,7 +27,7 @@ const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ route, navigation }) =>
   const totalAmount = cartItems.reduce((sum, item) => sum + (item.Price * (item.Quantity || 1)), 0);
 
   const handleConfirmPayment = () => {
-    alert('Thanh toán thành công! Cảm ơn bạn đã đặt hàng.');
+    alert('Đặt hàng thành công! Cảm ơn bạn đã đặt hàng.Thanh toán khi nhận hàng.');
     navigation.navigate('CustomerListService', { totalAmount }); // Chuyển đến trang CustomerListService và truyền tổng tiền
   };
 

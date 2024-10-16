@@ -13,6 +13,7 @@ type Service = {
   Description?: string;
   Sizes?: string[];
   Quantity?: number;
+  selected?: boolean; // Thêm trường này
 };
 
 const DetailScreen = ({ route, navigation }: any) => {
@@ -22,7 +23,7 @@ const DetailScreen = ({ route, navigation }: any) => {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [cartQuantity, setCartQuantity] = useState(0);
 
-  const sizes = service.Sizes || ['36', '37', '38', '39', '40', '41', '42'];
+  const sizes = service.Sizes || ['S', 'M', 'L', 'XL', '2XL', '3XL'];
 
   useEffect(() => {
     const loadCart = async () => {
@@ -72,13 +73,13 @@ const DetailScreen = ({ route, navigation }: any) => {
       const itemToAdd = { 
         ...service, 
         Sizes: [selectedSize], 
-        Quantity: 1 
+        Quantity: 1, 
+        selected: false,
       }; 
       setCart(prevCart => [...prevCart, itemToAdd]);
       Alert.alert(`${service.ServiceName} kích thước ${selectedSize} với số lượng 1 đã được thêm vào giỏ hàng!`);
     }
 
-    // Cập nhật số lượng giỏ hàng
     const totalQuantity = cart.reduce((sum, item) => sum + (item.Quantity || 0), 0) + 1;
     setCartQuantity(totalQuantity);
   };
@@ -98,13 +99,15 @@ const DetailScreen = ({ route, navigation }: any) => {
   };
 
   const handleCheckout = async () => {
-    navigation.navigate('CheckoutScreen', { cartItems: cart });
+    const selectedItems = cart.filter(item => item.selected);
+    navigation.navigate('CheckoutScreen', { cartItems: selectedItems });
 
     try {
-      await AsyncStorage.removeItem('@cart');
-      setCart([]);
-      setCartQuantity(0);
-      setCartVisible(false); // Tắt giỏ hàng
+      const updatedCart = cart.filter(item => !item.selected);
+      await AsyncStorage.setItem('@cart', JSON.stringify(updatedCart));
+      setCart(updatedCart);
+      setCartQuantity(updatedCart.reduce((sum, item) => sum + (item.Quantity || 0), 0));
+      setCartVisible(false);
     } catch (e) {
       console.error("Không thể xóa giỏ hàng:", e);
     }
@@ -117,6 +120,13 @@ const DetailScreen = ({ route, navigation }: any) => {
     setCart(updatedCart);
     const totalQuantity = updatedCart.reduce((sum, item) => sum + (item.Quantity || 0), 0);
     setCartQuantity(totalQuantity);
+  };
+
+  const handleToggleSelect = (id: string) => {
+    const updatedCart = cart.map(item =>
+      item.id === id ? { ...item, selected: !item.selected } : item
+    );
+    setCart(updatedCart);
   };
 
   return (
@@ -175,6 +185,7 @@ const DetailScreen = ({ route, navigation }: any) => {
         onRemove={handleRemoveItem}
         onCheckout={handleCheckout}
         onUpdateQuantity={handleUpdateQuantity}
+        onToggleSelect={handleToggleSelect}
       />
     </ScrollView>
   );
@@ -234,61 +245,57 @@ const styles = StyleSheet.create({
     shadowColor: '#000000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowRadius: 1.41,
     elevation: 2,
   },
   text: {
-    fontSize: 18,
+    fontSize: 16,
     marginBottom: 10,
-    color: '#000000',
   },
   price: {
     fontWeight: 'bold',
-    color: '#000000',
+    color: '#E60026',
   },
   creator: {
     fontStyle: 'italic',
-    color: '#666666',
   },
   description: {
-    fontSize: 16,
-    color: '#000000',
-    marginBottom: 10,
+    fontSize: 14,
+    marginTop: 5,
+    color: '#666',
   },
   sizeContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
+    justifyContent: 'space-around',
+    marginVertical: 10,
   },
   sizeButton: {
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: '#000',
     borderRadius: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginHorizontal: 5,
+    padding: 10,
   },
   selectedSizeButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#E60026',
   },
   sizeButtonText: {
-    color: '#000000',
+    color: '#000',
   },
   selectedSizeText: {
-    color: '#FFFFFF',
+    color: '#FFF',
   },
   addButton: {
-    backgroundColor: '#000000',
-    padding: 15,
+    backgroundColor: '#E60026',
     borderRadius: 5,
+    padding: 15,
     alignItems: 'center',
     marginTop: 20,
   },
   addButtonText: {
-    color: '#FFFFFF',
+    color: '#FFF',
     fontWeight: 'bold',
   },
 });

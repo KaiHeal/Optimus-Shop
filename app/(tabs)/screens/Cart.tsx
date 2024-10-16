@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, SafeAreaView, Alert } from 'react-native';
 
 type Service = {
   id: string;
@@ -11,6 +11,7 @@ type Service = {
   Quantity?: number;
   Description?: string;
   Customizations?: string[];
+  selected?: boolean; // Trường này sẽ được cập nhật
 };
 
 type CartProps = {
@@ -20,6 +21,7 @@ type CartProps = {
   onRemove: (id: string, size: string) => void;
   onCheckout: () => void;
   onUpdateQuantity: (id: string, size: string, newQuantity: number) => void;
+  onToggleSelect: (id: string, size: string) => void;
 };
 
 const Cart: React.FC<CartProps> = ({
@@ -29,19 +31,25 @@ const Cart: React.FC<CartProps> = ({
   onRemove,
   onCheckout,
   onUpdateQuantity,
+  onToggleSelect,
 }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalQuantity, setTotalQuantity] = useState(0);
 
   useEffect(() => {
-    const amount = cartItems.reduce((total, item) => total + (item.Price * (item.Quantity || 1)), 0);
+    const amount = cartItems.filter(item => item.selected).reduce((total, item) => total + (item.Price * (item.Quantity || 1)), 0);
     setTotalAmount(amount);
-    const quantity = cartItems.reduce((sum, item) => sum + (item.Quantity || 0), 0);
+    const quantity = cartItems.filter(item => item.selected).reduce((sum, item) => sum + (item.Quantity || 0), 0);
     setTotalQuantity(quantity);
   }, [cartItems]);
 
   const renderItem = ({ item }: { item: Service }) => (
     <View style={styles.cartItem} key={item.id}>
+      <TouchableOpacity onPress={() => onToggleSelect(item.id, item.Sizes ? item.Sizes[0] : '')}>
+        <View style={styles.checkbox}>
+          {item.selected && <View style={styles.checkedIndicator} />}
+        </View>
+      </TouchableOpacity>
       {item.ImageUrl && (
         <Image source={{ uri: item.ImageUrl }} style={styles.itemImage} />
       )}
@@ -87,6 +95,15 @@ const Cart: React.FC<CartProps> = ({
     </View>
   );
 
+  const handleCheckout = () => {
+    const selectedItems = cartItems.filter(item => item.selected);
+    if (selectedItems.length === 0) {
+      Alert.alert('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán!');
+      return;
+    }
+    onCheckout();
+  };
+
   return (
     <Modal transparent={true} visible={isVisible} animationType="slide">
       <SafeAreaView style={styles.modalContainer}>
@@ -105,7 +122,10 @@ const Cart: React.FC<CartProps> = ({
             <Text style={styles.totalQuantityText}>Tổng số lượng: {totalQuantity}</Text>
           </View>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.checkoutButton} onPress={onCheckout}>
+            <TouchableOpacity 
+              style={styles.checkoutButton} 
+              onPress={handleCheckout}
+            >
               <Text style={styles.checkoutButtonText}>Thanh toán</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -141,6 +161,22 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e5e5',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checkedIndicator: {
+    width: 16,
+    height: 16,
+    backgroundColor: '#000',
+    borderRadius: 3,
   },
   itemImage: {
     width: 50,
@@ -202,7 +238,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     flex: 1,
-    marginRight: 10, // Khoảng cách giữa nút thanh toán và nút đóng
+    marginRight: 10,
   },
   checkoutButtonText: {
     color: 'white',
