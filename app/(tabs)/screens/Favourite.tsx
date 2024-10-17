@@ -16,7 +16,7 @@ type FavouriteProps = {
     params: {
       favourites: Service[];
       removeFavourite: (id: string) => void;
-      setFavoritesCount: (count: number) => void;
+      setFavoritesCount: (count: number | ((prevCount: number) => number)) => void;
     };
   };
 };
@@ -27,13 +27,15 @@ const Favourite: React.FC<FavouriteProps> = ({ route }) => {
   const navigation = useNavigation();
 
   const navigateToDetail = (service: Service) => {
-    navigation.navigate('DetailScreen', { service });
+    navigation.navigate('DetailScreen' as never, { service } as never);
   };
 
   const handleRemoveFavourite = (id: string) => {
     removeFavourite(id);
     setFavourites(prevFavourites => prevFavourites.filter(item => item.id !== id));
-    setFavoritesCount(prevCount => prevCount - 1);
+    if (setFavoritesCount) {
+      setFavoritesCount(prevCount => (typeof prevCount === 'number' ? prevCount - 1 : 0));
+    }
   };
 
   const renderItem = ({ item }: { item: Service }) => (
@@ -42,7 +44,7 @@ const Favourite: React.FC<FavouriteProps> = ({ route }) => {
       <View style={styles.itemDetails}>
         <TouchableOpacity onPress={() => navigateToDetail(item)}>
           <Text style={styles.itemName}>{item.ServiceName}</Text>
-          <Text style={styles.itemPrice}>{item.Price} ₫</Text>
+          <Text style={styles.itemPrice}>{item.Price.toLocaleString('vi-VN')} ₫</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.removeButton} onPress={() => handleRemoveFavourite(item.id)}>
           <Icon name="favorite" size={24} color="#ff3d00" />
@@ -86,7 +88,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     height: 100,
-    marginBottom: 10, // Thêm khoảng cách giữa các sản phẩm
+    marginBottom: 10,
   },
   itemImage: {
     width: 80,
@@ -108,8 +110,13 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-fontSize: 16,
+    fontSize: 16,
     color: '#888',
+  },
+  removeButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
 });
 

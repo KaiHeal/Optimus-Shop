@@ -17,7 +17,6 @@ import Cart from './screens/Cart';
 import EditProfileScreen from './screens/EditProfileScreen';
 import StarRating from './screens/StarRating';
 
-
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -40,8 +39,10 @@ const App = () => {
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="StarRating" component={StarRating}/>
         
+        
       </Stack.Navigator>
     </NavigationContainer>
+
   );
 };
 

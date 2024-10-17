@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image, Modal,  SafeAreaView,  Animated 
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, Image, Modal, SafeAreaView, Animated } from 'react-native';
 import { FIRESTORE_DB } from '../firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
 import CartScreen from './Cart';
@@ -19,9 +18,8 @@ type Service = {
 };
 
 const AdBanner = () => {
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [currentIndex, setCurrentIndex] = useState(0);
-  
 
   const images = [
     'https://synottip-cz.com/wp-content/uploads/2022/08/homepage.png',
@@ -47,7 +45,7 @@ const AdBanner = () => {
           useNativeDriver: true,
         }).start();
       });
-    }, 3000); // Change image every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [fadeAnim]);
@@ -78,23 +76,32 @@ const CustomerListService = ({ navigation, route }: any) => {
   const [showGreeting, setShowGreeting] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchServices = async () => {
       try {
         const querySnapshot = await getDocs(collection(FIRESTORE_DB, 'Service'));
-        const serviceList: Service[] = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data() as Omit<Service, 'id'>,
-        }));
-        setServices(serviceList);
-        setFilteredServices(serviceList);
+        if (isMounted) {
+          const serviceList: Service[] = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data() as Omit<Service, 'id'>,
+          }));
+          setServices(serviceList);
+          setFilteredServices(serviceList);
+        }
       } catch (error) {
         console.error('Lỗi khi lấy danh sách dịch vụ:', error);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchServices();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -117,13 +124,17 @@ const CustomerListService = ({ navigation, route }: any) => {
 
   const handleSearch = (text: string) => {
     setSearchText(text);
-    if (text) {
-      const filteredData = services.filter(service =>
-        service.ServiceName.toLowerCase().includes(text.toLowerCase())
-      );
-      setFilteredServices(filteredData);
+    if (services && services.length > 0) {
+      if (text) {
+        const filteredData = services.filter(service =>
+          service.ServiceName.toLowerCase().includes(text.toLowerCase())
+        );
+        setFilteredServices(filteredData);
+      } else {
+        setFilteredServices(services);
+      }
     } else {
-      setFilteredServices(services);
+      setFilteredServices([]);
     }
   };
 
@@ -139,7 +150,7 @@ const CustomerListService = ({ navigation, route }: any) => {
 
   const handleAddToFavourites = (service: Service) => {
     if (!favourites.some(fav => fav.id === service.id)) {
-      setFavourites([...favourites, service]);
+      setFavourites(prevFavourites => [...prevFavourites, service]);
       setFavoritesCount(prevCount => prevCount + 1);
       Toast.show({
         text1: 'Đã thêm vào danh sách yêu thích!',
@@ -160,7 +171,7 @@ const CustomerListService = ({ navigation, route }: any) => {
   };
 
   const removeFavourite = (id: string) => {
-    setFavourites(prevFavourites => prevFavourites.filter(item => item.id !== id));
+    setFavourites(prevFavourites => prevFavourites?.filter(item => item.id !== id) || []);
   };
 
   const renderItem = ({ item }: { item: Service }) => {
@@ -226,9 +237,8 @@ const CustomerListService = ({ navigation, route }: any) => {
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
-        {/* Thêm Banner Quảng Cáo */}
         <AdBanner />
-        
+
         <View style={styles.searchContainer}>
           <Icon name="search" size={24} color="#888" style={styles.searchIcon} />
           <TextInput
@@ -240,20 +250,26 @@ const CustomerListService = ({ navigation, route }: any) => {
           />
         </View>
         <Text style={styles.serviceListHeaderText}>Danh sách Sản Phẩm</Text>
-        <FlatList
-          data={groupedServices}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              {item.map(service => renderItem({ item: service }))}
-            </View>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
+        {filteredServices && filteredServices.length > 0 ? (
+          <FlatList
+            data={groupedServices}
+            keyExtractor={(item, index) => `group-${index}`}
+            renderItem={({ item, index }) => (
+              <View style={styles.row} key={`row-${index}`}>
+                {item.map(service => (
+                  <View key={service.id} style={styles.columnContainer}>
+                    {renderItem({ item: service })}
+                  </View>
+                ))}
+              </View>
+            )}
+          />
+        ) : (
+          <Text style={styles.noResultsText}>Không tìm thấy kết quả</Text>
+        )}
       </View>
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-          <Icon name="home" size={24} color="#FFB6C1" />
-        </TouchableOpacity>
+        
         <TouchableOpacity onPress={() => navigation.navigate('Favourite', { favourites, removeFavourite, setFavoritesCount })}>
           <View style={styles.favouriteIconContainer}>
             <Icon name="favorite" size={24} color="#FFB6C1" />
@@ -275,11 +291,14 @@ const CustomerListService = ({ navigation, route }: any) => {
         cartItems={cart}
         onClose={() => setCartVisible(false)}
         onRemove={(itemId: string) => setCart(cart.filter(item => item.id !== itemId))}
-        onCheckout={handleCheckout} onUpdateQuantity={function (id: string, size: string, newQuantity: number): void {
-          throw new Error('Function not implemented.');
-        } } onToggleSelect={function (id: string, size: string): void {
-          throw new Error('Function not implemented.');
-        } }      />
+        onCheckout={handleCheckout}
+        onUpdateQuantity={(id: string, size: string, newQuantity: number) => {
+          // Implement the logic to update quantity here
+        }}
+        onToggleSelect={(id: string, size: string) => {
+          // Implement the logic to toggle select here
+        }}
+      />
 
       <Toast />
 
@@ -380,8 +399,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 10,
   },
-  itemContainer: {
+  columnContainer: {
     width: '48%',
+  },
+  itemContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
@@ -398,94 +419,95 @@ const styles = StyleSheet.create({
   },
   item: {
     padding: 10,
-    flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
   },
   heartIconContainer: {
     position: 'absolute',
     top: 10,
-    left: 10,
+    right: 10,
     zIndex: 1,
   },
   itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    marginRight: 10,
+    width: '100%',
+    height: 120,
+    borderRadius: 5,
+    resizeMode: 'cover',
   },
   itemDetails: {
-    flex: 1,
+    marginTop: 10,
+    alignItems: 'center',
   },
   itemName: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#333',
     marginBottom: 5,
+    textAlign: 'center',
   },
   itemPrice: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF0000',
   },
   bottomNav: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: 10,
     backgroundColor: '#000',
-    marginLeft:0,
+    paddingVertical: 10,
   },
   favouriteIconContainer: {
     position: 'relative',
-    alignItems: 'center',
   },
   favouriteCountText: {
     position: 'absolute',
-    top: -5,
-    right: -5,
-    backgroundColor: '#ff3d00',
+    top: -8,
+    right: -8,
+    backgroundColor: '#FF0000',
     color: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 5,
     fontSize: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 12,
   },
   sidebarContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
   },
   overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
   },
   sidebar: {
-    width: 250,
     backgroundColor: '#fff',
     padding: 20,
+    borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    borderBottomRightRadius: 20,
   },
   sidebarHeader: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sidebarItem: {
-    fontSize: 18,
+    fontSize: 16,
     marginVertical: 10,
   },
-  // Styles cho Banner
   bannerContainer: {
-    marginBottom: 15,
+    width: '100%',
+    height: 150,
+    marginBottom: 20,
   },
   bannerImage: {
-    width: '100%', // Full width
-    height: 150, // Height of the banner
-    borderRadius: 10, // Rounded corners
+    width: '100%',
+    height: '100%',
+  },
+  noResultsText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#666',
   },
 });
 

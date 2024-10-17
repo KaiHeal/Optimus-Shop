@@ -11,7 +11,7 @@ type Service = {
   Quantity?: number;
   Description?: string;
   Customizations?: string[];
-  selected?: boolean; // Trường này sẽ được cập nhật
+  selected?: boolean;
 };
 
 type CartProps = {
@@ -44,7 +44,7 @@ const Cart: React.FC<CartProps> = ({
   }, [cartItems]);
 
   const renderItem = ({ item }: { item: Service }) => (
-    <View style={styles.cartItem} key={item.id}>
+    <View style={styles.cartItem}>
       <TouchableOpacity onPress={() => onToggleSelect(item.id, item.Sizes ? item.Sizes[0] : '')}>
         <View style={styles.checkbox}>
           {item.selected && <Text style={styles.checkedIndicator}>✓</Text>}
@@ -112,7 +112,7 @@ const Cart: React.FC<CartProps> = ({
           <FlatList
             data={cartItems}
             renderItem={renderItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `${item.id}-${item.Sizes ? item.Sizes[0] : ''}`}
             showsVerticalScrollIndicator={true}
             contentContainerStyle={styles.listContent}
             style={styles.flatList}
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   checkedIndicator: {
-    color: '', // Màu xanh cho dấu "V"
-    fontSize: 20, // Kích thước chữ
+    color: '#007AFF',
+    fontSize: 20,
   },
   itemImage: {
     width: 50,

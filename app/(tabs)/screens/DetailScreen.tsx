@@ -96,12 +96,13 @@ const DetailScreen = ({ route, navigation }: any) => {
       Alert.alert(`${service.ServiceName} kích thước ${selectedSize} với số lượng 1 đã được thêm vào giỏ hàng!`);
     }
 
+    // Cập nhật số lượng giỏ hàng
     const totalQuantity = cart.reduce((sum, item) => sum + (item.Quantity || 0), 0) + 1;
     setCartQuantity(totalQuantity);
   };
 
   const handleToggleFavorite = () => {
-    setIsFavorite((prevState: any) => !prevState);
+    setIsFavorite(prevState => !prevState);
     Alert.alert(`Bạn đã ${!isFavorite ? 'thêm vào' : 'xóa khỏi'} danh sách yêu thích!`);
   };
 
@@ -153,7 +154,7 @@ const DetailScreen = ({ route, navigation }: any) => {
     setCart(updatedCart);
   };
 
-  const handleRatingChange = (rating: React.SetStateAction<number>) => {
+  const handleRatingChange = (rating) => {
     setUserRating(rating);
     Alert.alert(`Bạn đã đánh giá ${rating} sao!`);
   };
@@ -169,12 +170,9 @@ const DetailScreen = ({ route, navigation }: any) => {
         )}
       </TouchableOpacity>
       
-      <ScrollView contentContainerStyle={styles.container}>
       <TouchableOpacity style={styles.favoriteIcon} onPress={handleToggleFavorite}>
         <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? "red" : "black"} />
       </TouchableOpacity>
-      {/* Other UI components */}
-    </ScrollView>
 
       <Text style={styles.title}>{service.ServiceName}</Text>
       

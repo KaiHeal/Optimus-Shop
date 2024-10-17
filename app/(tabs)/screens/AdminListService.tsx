@@ -217,7 +217,7 @@ const AdminListScreen = ({ navigation }: any) => {
             </TouchableOpacity>
             {selectedImage && (
               <View style={styles.imageContainer}>
-                <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
+                <Image source={{ uri: selectedImage.uri }} style ={styles.imagePreview} />
               </View>
             )}
             <TouchableOpacity style={styles.submitButton} onPress={handleAddService}>
